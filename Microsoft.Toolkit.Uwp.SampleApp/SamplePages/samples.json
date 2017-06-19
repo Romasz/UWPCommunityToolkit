@@ -3,6 +3,14 @@
     "Name": "Controls",
     "Icon": "Icons/Foundation.png",
     "Samples": [
+     {
+        "Name": "Carousel",
+        "Type": "CarouselPage",
+        "About": "Presents items in a carousel control. It reacts to changes in the layout as well as the content so it can adapt to different form factors automatically.",
+        "CodeUrl": "https://github.com/Microsoft/UWPCommunityToolkit/tree/master/Microsoft.Toolkit.Uwp.UI.Controls/Carousel",
+        "XamlCodeFile": "CarouselCode.bind",
+        "Icon": "/SamplePages/Carousel/Carousel.png"
+      },
       {
         "Name": "AdaptiveGridView",
         "Type": "AdaptiveGridViewPage",
@@ -294,6 +302,17 @@
         "Icon": "/SamplePages/Blur/blurBehavior.png",
         "BadgeUpdateVersionRequired": "Anniversary Update required",
         "DocumentationUrl": "https://raw.githubusercontent.com/Microsoft/UWPCommunityToolkit/dev/docs/animations/Blur.md"
+      },
+      {
+        "Name": "Saturation",
+        "Type": "SaturationBehaviorPage",
+        "About": "Saturate XAML elements using composition",
+        "CodeUrl": "https://github.com/Microsoft/UWPCommunityToolkit/tree/master/Microsoft.Toolkit.Uwp.UI.Animations/Behaviors",
+        "CodeFile": "SaturationBehaviorCode.bind",
+        "XamlCodeFile": "SaturationBehaviorXaml.bind",
+        "Icon": "/SamplePages/Saturation/saturationBehavior.png",
+        "BadgeUpdateVersionRequired": "Anniversary Update required",
+        "DocumentationUrl": "https://raw.githubusercontent.com/Microsoft/UWPCommunityToolkit/dev/docs/animations/Saturation.md"
       },
       {
         "Name": "Light",
