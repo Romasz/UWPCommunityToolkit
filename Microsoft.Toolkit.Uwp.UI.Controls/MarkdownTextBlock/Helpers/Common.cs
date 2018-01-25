@@ -21,6 +21,11 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls.Markdown.Helpers
         internal enum InlineParseMethod
         {
             /// <summary>
+            /// A Comment text
+            /// </summary>
+            Comment,
+
+            /// <summary>
             /// A bold element
             /// </summary>
             Bold,
@@ -79,6 +84,11 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls.Markdown.Helpers
             /// Image element.
             /// </summary>
             Image,
+
+            /// <summary>
+            /// Emoji element.
+            /// </summary>
+            Emoji
         }
 
         /// <summary>
@@ -105,10 +115,12 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls.Markdown.Helpers
             ItalicTextInline.AddTripChars(_triggerList);
             MarkdownLinkInline.AddTripChars(_triggerList);
             HyperlinkInline.AddTripChars(_triggerList);
+            CommentInline.AddTripChars(_triggerList);
             StrikethroughTextInline.AddTripChars(_triggerList);
             SuperscriptTextInline.AddTripChars(_triggerList);
             CodeInline.AddTripChars(_triggerList);
             ImageInline.AddTripChars(_triggerList);
+            EmojiInline.AddTripChars(_triggerList);
 
             // Create an array of characters to search against using IndexOfAny.
             _tripCharacters = _triggerList.Select(trigger => trigger.FirstChar).Distinct().ToArray();
@@ -213,6 +225,9 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls.Markdown.Helpers
                         InlineParseResult parseResult = null;
                         switch (currentTripChar.Method)
                         {
+                            case InlineParseMethod.Comment:
+                                parseResult = CommentInline.Parse(markdown, pos, end);
+                                break;
                             case InlineParseMethod.Bold:
                                 parseResult = BoldTextInline.Parse(markdown, pos, end);
                                 break;
@@ -272,6 +287,9 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls.Markdown.Helpers
                                 break;
                             case InlineParseMethod.Image:
                                 parseResult = ImageInline.Parse(markdown, pos, end);
+                                break;
+                            case InlineParseMethod.Emoji:
+                                parseResult = EmojiInline.Parse(markdown, pos, end);
                                 break;
                         }
 

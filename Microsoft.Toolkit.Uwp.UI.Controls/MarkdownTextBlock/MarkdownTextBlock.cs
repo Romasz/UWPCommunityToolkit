@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Toolkit.Uwp.UI.Controls.Markdown.Display;
 using Microsoft.Toolkit.Uwp.UI.Controls.Markdown.Helpers;
 using Microsoft.Toolkit.Uwp.UI.Controls.Markdown.Parse;
@@ -21,13 +22,14 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 
 namespace Microsoft.Toolkit.Uwp.UI.Controls
 {
     /// <summary>
     /// An efficient and extensible control that can parse and render markdown.
     /// </summary>
-    public sealed class MarkdownTextBlock : Control, ILinkRegister
+    public sealed class MarkdownTextBlock : Control, ILinkRegister, IImageResolver
     {
         /// <summary>
         /// Holds a list of hyperlinks we are listening to.
@@ -50,10 +52,16 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
         public event EventHandler<LinkClickedEventArgs> LinkClicked;
 
         /// <summary>
+        /// Fired when an image from the markdown document needs to be resolved.
+        /// The default implementation is basically <code>new BitmapImage(new Uri(e.Url));</code>.
+        /// </summary>
+        public event EventHandler<ImageResolvingEventArgs> ImageResolving;
+
+        /// <summary>
         /// Gets the dependency property for <see cref="ImageStretch"/>.
         /// </summary>
         public static readonly DependencyProperty ImageStretchProperty = DependencyProperty.Register(
-            nameof(IsTextSelectionEnabled),
+            nameof(ImageStretch),
             typeof(Stretch),
             typeof(MarkdownTextBlock),
             new PropertyMetadata(Stretch.None, OnPropertyChangedStatic));
@@ -249,6 +257,25 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
             typeof(Thickness),
             typeof(MarkdownTextBlock),
             new PropertyMetadata(null, OnPropertyChangedStatic));
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="EmojiFontFamily"/>.
+        /// </summary>
+        public static readonly DependencyProperty EmojiFontFamilyProperty = DependencyProperty.Register(
+            nameof(EmojiFontFamily),
+            typeof(FontFamily),
+            typeof(MarkdownTextBlock),
+            new PropertyMetadata(null, OnPropertyChangedStatic));
+
+        /// <summary>
+        /// Gets or sets the font used to display emojis.  If this is <c>null</c>, then
+        /// Segoe UI Emoji font is used.
+        /// </summary>
+        public FontFamily EmojiFontFamily
+        {
+            get { return (FontFamily)GetValue(EmojiFontFamilyProperty); }
+            set { SetValue(EmojiFontFamilyProperty, value); }
+        }
 
         /// <summary>
         /// Gets or sets the font weight to use for level 1 headers.
@@ -1068,7 +1095,7 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
         private void RenderMarkdown()
         {
             // Make sure we have something to parse.
-            if (Text == null)
+            if (string.IsNullOrWhiteSpace(Text))
             {
                 return;
             }
@@ -1090,7 +1117,7 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
                 markdown.Parse(Text);
 
                 // Now try to display it
-                var renderer = new XamlRenderer(markdown, this)
+                var renderer = new XamlRenderer(markdown, this, this)
                 {
                     Background = Background,
                     BorderBrush = BorderBrush,
@@ -1111,6 +1138,7 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
                     CodeFontFamily = CodeFontFamily,
                     CodePadding = CodePadding,
                     CodeMargin = CodeMargin,
+                    EmojiFontFamily = EmojiFontFamily,
                     Header1FontSize = Header1FontSize,
                     Header1FontWeight = Header1FontWeight,
                     Header1Margin = Header1Margin,
@@ -1227,6 +1255,29 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
             // Fire off the event.
             var eventArgs = new LinkClickedEventArgs(url);
             LinkClicked?.Invoke(this, eventArgs);
+        }
+
+        /// <summary>
+        /// Called when the renderer needs to display a image.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        async Task<ImageSource> IImageResolver.ResolveImageAsync(string url, string tooltip)
+        {
+            var eventArgs = new ImageResolvingEventArgs(url, tooltip);
+            ImageResolving?.Invoke(this, eventArgs);
+
+            await eventArgs.WaitForDeferrals();
+
+            try
+            {
+                return eventArgs.Handled
+                                ? eventArgs.Image
+                                : new BitmapImage(new Uri(url));
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }
